@@ -1,0 +1,97 @@
+Duy Vo
+
+Chapter 8
+Q1.Which customer live in Massachusetts? list each customer's last name , first name, and state?
+
+SELECT lastname, firstname, state 
+FROM gf_customers 
+WHERE state IN ('MA');
+
+Q2. List all sku# with a cost price greater than $40.00. Sort the list by cost in descending order.
+
+SELECT sku#, cost 
+FROM sku_fish 
+WHERE cost > 40.00 
+ORDER BY cost DESC;
+
+Chapter 9
+Q1. Determine which orders haven't yet shipped and the name of the customer who placed the order. Sort the results by first name.
+
+SELECT order#, firstname ||' '|| lastname AS "customer's name", orderdate, shipdate 
+FROM gf_customers JOIN gf_orders USING (customer#) 
+WHERE shipdate IS NULL 
+ORDER BY firstname;
+
+Q2. List all customers who ordered butterfly fish.
+
+SELECT firstname ||' '|| lastname AS "customer's name", fishname 
+FROM gf_customers JOIN gf_orders USING (customer#) 
+JOIN gf_orderitems USING (order#)
+JOIN sku_fish USING (sku#)
+JOIN fishnames USING (fishname)
+WHERE fishnamedecoded = 'Butterfly';
+
+Chapter 10
+Q1. Using today's date, determine the age (in months) of each fish that store sells. Make sure only whole months are displayed, ignore any portion of months. Display the order#, sku#, fishnamedecoded, picture date, and age. Sort the list by order.
+
+SELECT order#, sku#, fishnamedecoded AS "name of fish", picturedate, TRUNC(MONTHS_BETWEEN(sysdate,picturedate),0) AS "age of fish was sold in months" 
+FROM gf_customers JOIN gf_orders USING (customer#) 
+JOIN gf_orderitems USING (order#) 
+JOIN sku_fish USING (sku#) 
+JOIN fishnames USING (fishname)
+ORDER BY order#;
+
+Q2. Determine employee processed orders with sku# = 0817YUHQKI758TY7F1. list order#, employee name and his/her street address, precede each street address with plus sign so the width of the displayed address field is 25.
+
+SELECT order#, firstname ||' '|| lastname AS "employee's name", LPAD(address, 25, '+') AS "street address", sku# 
+FROM employee_process_orders JOIN gf_orders USING (order#) 
+JOIN gf_orderitems USING (order#) 
+WHERE sku# = '0817YUHQKI758TY7F1';
+
+Chapter 11
+Q1. Find the average retail price of 6.7 to 7 inch and 7.5 to 8 inch fish, use a single query to show the average for those lengths fish.
+
+SELECT lengthdecoded AS "length of fish", TO_CHAR(AVG(retail),'$999.99') AS "average retail price"
+FROM sku_fish JOIN lengths USING (length)
+WHERE UPPER(lengthdecoded) = '6.5 TO 7 INCH' OR UPPER(lengthdecoded) = '7.5 TO 8 INCH'
+GROUP BY lengthdecoded;
+
+Q2. List customers from New Jersey and Massachusetts Who placed orders totaling over $70. Aggregate per order, per customer. Sort the list by total.
+
+SELECT Order#, firstname ||' '||lastname AS "customer's name", TO_CHAR(SUM(paidamount),'$999.99') AS "total" 
+FROM gf_customers JOIN gf_orders USING (Customer#)
+JOIN gf_orderitems USING (order#)
+WHERE UPPER(Shipstate) IN ('NJ','MA')
+GROUP BY Order#, Customer#, Firstname, Lastname
+HAVING SUM(paidamount) > 70
+ORDER BY SUM(paidamount);
+
+Chapter 12
+Q1. List the customers who placed an order for the least expensive fish, include the fish name decoded, price of the fish in your output. 
+
+SELECT firstname ||' '|| lastname AS "customer's name", fishnamedecoded AS "fish name", retail AS "price" 
+FROM gf_customers JOIN gf_orders USING (customer#)
+JOIN gf_orderitems USING (order#)
+JOIN sku_fish USING (sku#)
+JOIN fishnames USING (fishname)
+WHERE retail = (SELECT MIN(retail) FROM sku_fish);
+
+Q2. List the gift for all orders with butterfly fish. Sort by order#, include the sku#, retail price, fish name and length of the fish.
+
+SELECT DISTINCT oi.order#, sk.sku#, p.gift, sk.retail, fi.fishnamedecoded AS "fish name", l.lengthdecoded AS "length"
+FROM gf_customers c, gf_orders o, gf_orderitems oi, sku_fish sk, gf_promotion p, fishnames fi, lengths l
+WHERE c.customer# = o.customer#
+AND o.order# = oi.order#
+AND oi.sku# = sk.sku#
+AND sk.fishname = fi.fishname
+AND sk.length = l.length
+AND sk.length BETWEEN p.minlength AND p.maxlength
+AND sk.fishname IN (SELECT fishname FROM gf_promotion WHERE UPPER(fishname) = 'BU')
+ORDER BY order#;
+
+
+
+
+
+
+
