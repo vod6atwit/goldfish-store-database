@@ -2,7 +2,7 @@
 
 ## Introduction
 
-Goldfish stores Database is a an database application written in Oracle Sql implementing some tasks query data.
+Goldfish stores Database is a database application written in Oracle Sql implementing some tasks query data.
 
 ## Features
 
